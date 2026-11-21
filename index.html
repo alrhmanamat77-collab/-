@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معمل الكيمياء الافتراضي: قياس الرقم الهيدروجيني (pH)</title>
+    <!-- استيراد خط تجوال العربي العصري -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- استيراد مكتبة Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+        /* تنسيقات خاصة بالكأس الزجاجي والمسبار والورقة */
+        .beaker-glass {
+            background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.4) 100%);
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.8), 0 15px 30px -10px rgba(15, 23, 42, 0.15);
+            border: 3px solid rgba(255, 255, 255, 0.85);
+            border-top: none;
+        }
+        .liquid-transition {
+            transition: background-color 0.6s ease, height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tool-transition {
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .paper-tip-transition {
+            transition: background-color 0.8s ease;
+        }
+        .formula-ltr {
+            direction: ltr;
+            unicode-bidi: isolate;
+            display: inline-block;
+        }
+        /* تخصيص شريط التمرير */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #0284c7;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+            border: 2px solid #ffffff;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .active-ph-box {
+            animation: pulseGlow 1.8s infinite ease-in-out;
+            box-shadow: 0 0 0 3px #0f172a, 0 8px 15px rgba(0,0,0,0.25);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- الترويسة الرئيسية واسم المعلمة -->
+    <header class="bg-gradient-to-l from-indigo-900 via-blue-900 to-cyan-800 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 text-center md:text-right">
+                <div class="bg-white/15 p-2.5 rounded-2xl backdrop-blur-sm border border-white/20 shrink-0">
+                    <!-- أيقونة دورق كيميائي -->
+                    <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6m-5 0v5.172a2 2 0 01-.586 1.414l-4.828 4.828A2 2 0 004 15.828V19a2 2 0 002 2h12a2 2 0 002-2v-3.172a2 2 0 00-.586-1.414l-4.828-4.828A2 2 0 0114 8.172V3" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 15h12" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">معمل الكيمياء الافتراضي: قياس الرقم الهيدروجيني (<span class="formula-ltr">pH</span>)</h1>
+                    <p class="text-xs sm:text-sm text-cyan-100 mt-0.5">استكشاف قوة الحموض والقواعد والتأين في المحاليل المائية</p>
+                </div>
+            </div>
+
+            <!-- شارة اسم المعلمة البارزة -->
+            <div class="bg-amber-400/20 border border-amber-300/50 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-2.5 shadow-inner">
+                <span class="bg-amber-400 text-slate-900 p-1.5 rounded-xl font-bold text-xs shadow-sm">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                    </svg>
+                </span>
+                <span class="font-extrabold text-sm sm:text-base text-amber-200">إعداد المعلمة: أمة الرحمن الشُعبي</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- شريط التنقل بين وضع المختبر ووضع الاختبار -->
+    <div class="max-w-7xl mx-auto w-full px-4 pt-4 sm:px-6">
+        <div class="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex gap-1.5 w-full sm:w-auto">
+            <button id="btnModeLab" onclick="switchMode('lab')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-blue-600 text-white shadow-sm flex items-center justify-center gap-2">
+                <span>🧪</span>
+                <span>المختبر التفاعلي</span>
+            </button>
+            <button id="btnModeQuiz" onclick="switchMode('quiz')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl font-bold text-sm transition-all text-slate-600 hover:bg-slate-100 flex items-center justify-center gap-2">
+                <span>🎯</span>
+                <span>اختبر فهمك (المحاليل المجهولة)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-7xl mx-auto w-full px-4 py-4 sm:px-6 flex-1">
+        
+        <!-- شريط تحدي المحلول المجهول (يظهر فقط في وضع الاختبار) -->
+        <div id="quizBanner" class="hidden mb-5 bg-gradient-to-r from-purple-700 to-indigo-800 text-white rounded-3xl p-5 shadow-lg border border-purple-400/30">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-amber-400 text-slate-900 text-xs font-extrabold px-2.5 py-0.5 rounded-full">تحدي المختبر</span>
+                        <h2 class="text-lg sm:text-xl font-extrabold" id="quizQuestionTitle">محلول مجهول رقم #1</h2>
+                    </div>
+                    <p class="text-sm text-purple-100">استخدم <strong>ورقة الكاشف العالمي</strong> أو <strong>جهاز <span class="formula-ltr">pH</span> الرقمي</strong> لفحص المحلول في الكأس، ثم اختر تصنيفه الصحيح:</p>
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-center gap-2" id="quizOptions">
+                    <button onclick="checkQuizAnswer('حمض قوي')" class="px-3.5 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs sm:text-sm shadow transition">حمض قوي</button>
+                    <button onclick="checkQuizAnswer('حمض ضعيف')" class="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm shadow transition">حمض ضعيف</button>
+                    <button onclick="checkQuizAnswer('متعادل')" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow transition">متعادل</button>
+                    <button onclick="checkQuizAnswer('قاعدة ضعيفة')" class="px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs sm:text-sm shadow transition">قاعدة ضعيفة</button>
+                    <button onclick="checkQuizAnswer('قاعدة قوية')" class="px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs sm:text-sm shadow transition">قاعدة قوية</button>
+                </div>
+
+                <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-2xl border border-white/20 shrink-0">
+                    <div class="text-center">
+                        <div class="text-xs text-purple-200">النقاط</div>
+                        <div class="text-lg font-extrabold text-amber-300" id="quizScore">0 / 0</div>
+                    </div>
+                    <button onclick="nextQuizQuestion()" class="px-3 py-1.5 bg-white text-indigo-900 hover:bg-indigo-50 font-bold text-xs rounded-xl shadow transition">سؤال تالي ↻</button>
+                </div>
+            </div>
+            <!-- رسالة التغذية الراجعة للاختبار -->
+            <div id="quizFeedback" class="hidden mt-3 p-3 rounded-2xl text-sm font-bold text-center"></div>
+        </div>
+
+        <!-- الشبكة الرئيسية للمختبر -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            
+            <!-- العمود الأيمن: اختيار المحاليل -->
+            <section id="solutionsPanel" class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-md border border-slate-200/80">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-base sm:text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-6 bg-blue-600 rounded-full inline-block"></span>
+                        <span>1. اختر المحلول المراد فحصه</span>
+                    </h2>
+                    <span class="text-xs font-bold text-slate-400">11 مادة</span>
+                </div>
+
+                <!-- قائمة منسدلة للهواتف لسهولة الوصول السريع -->
+                <div class="mb-3 sm:hidden">
+                    <label for="mobileSolutionSelect" class="block text-xs font-bold text-slate-500 mb-1">اختيار سريع من القائمة:</label>
+                    <select id="mobileSolutionSelect" onchange="selectSolutionById(this.value)" class="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-50 font-bold text-sm text-slate-800 focus:outline-none focus:border-blue-500">
+                    </select>
+                </div>
+
+                <!-- بطاقات المحاليل -->
+                <div id="solutionsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 max-h-[430px] overflow-y-auto pl-1 pr-0.5">
+                    <!-- يتم توليد البطاقات بواسطة JavaScript -->
+                </div>
+            </section>
+
+            <!-- العمود الأوسط: منصة التجربة والكأس الزجاجي وأدوات القياس -->
+            <section class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-md border border-slate-200/80 flex flex-col items-center">
+                <div class="w-full flex items-center justify-between mb-2">
+                    <h2 class="text-base sm:text-lg font-extrabold text-slate-800 flex items-center gap-2">
+                        <span class="w-2.5 h-6 bg-cyan-600 rounded-full inline-block"></span>
+                        <span>2. منصة التجربة والقياس</span>
+                    </h2>
+                    <button onclick="resetExperiment()" class="text-xs font-bold text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-2.5 py-1.5 rounded-xl transition">
+                        إعادة ضبط ↺
+                    </button>
+                </div>
+
+                <!-- أزرار التحكم بأدوات الفحص -->
+                <div class="grid grid-cols-2 gap-2.5 w-full mb-3">
+                    <button id="btnTogglePaper" onclick="togglePaper()" class="p-2.5 rounded-2xl border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition shadow-sm">
+                        <span class="text-lg">📜</span>
+                        <span id="paperBtnText">غمس ورقة الكاشف</span>
+                    </button>
+                    <button id="btnToggleMeter" onclick="toggleMeter()" class="p-2.5 rounded-2xl border-2 border-cyan-500 bg-cyan-50 hover:bg-cyan-100 text-cyan-900 font-bold text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition shadow-sm">
+                        <span class="text-lg">📟</span>
+                        <span id="meterBtnText">غمس مسبار جهاز pH</span>
+                    </button>
+                </div>
+
+                <!-- منطقة المحاكاة البصرية (الكأس + الأيونات + الأدوات) -->
+                <div class="relative w-full h-[350px] bg-gradient-to-b from-slate-100 via-slate-50 to-slate-200/90 rounded-3xl border border-slate-200 overflow-hidden flex flex-col items-center justify-end pb-6 select-none">
+                    
+                    <!-- اسم المحلول الحالي أعلى المنصة -->
+                    <div class="absolute top-3 right-3 left-3 flex justify-between items-center z-20 pointer-events-none">
+                        <span id="stageSolutionName" class="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold text-slate-800 shadow-sm border border-slate-200">
+                            حمض الهيدروكلوريك (HCl)
+                        </span>
+                        <span id="stageVolumeBadge" class="bg-blue-600/90 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-sm">
+                            100 mL
+                        </span>
+                    </div>
+
+                    <!-- جهاز قياس الرقم الهيدروجيني الرقمي (Digital pH Meter) -->
+                    <div id="digitalMeterWrapper" class="tool-transition absolute top-11 left-4 z-20 flex flex-col items-center" style="transform: translateY(-10px);">
+                        <!-- شاشة الجهاز -->
+                        <div class="bg-slate-800 border-2 border-slate-600 rounded-2xl p-2 shadow-xl w-28 text-center">
+                            <div class="text-[10px] text-slate-300 font-bold tracking-wider mb-0.5">pH METER</div>
+                            <div class="bg-emerald-950 border border-emerald-700/60 rounded-lg py-1 px-2">
+                                <span id="meterScreenReading" class="font-mono text-lg font-extrabold text-emerald-400 tracking-widest">--.-</span>
+                            </div>
+                        </div>
+                        <!-- سلك ومسبار الجهاز -->
+                        <div class="w-1 h-6 bg-slate-700"></div>
+                        <div class="w-3.5 h-28 bg-gradient-to-r from-slate-300 via-white to-slate-400 border border-slate-500 rounded-b-full shadow-md flex flex-col justify-end items-center pb-1">
+                            <div class="w-2 h-3 bg-cyan-500/80 rounded-full"></div>
+                        </div>
+                    </div>
+
+                    <!-- ورقة الكاشف العالمي (Universal Indicator Paper) -->
+                    <div id="indicatorPaperWrapper" class="tool-transition absolute top-12 right-7 z-20 flex flex-col items-center" style="transform: translateY(-10px);">
+                        <div class="text-[10px] font-bold text-slate-500 bg-white/80 px-1.5 py-0.5 rounded mb-1 shadow-sm">كاشف عالمي</div>
+                        <div class="w-6 h-32 rounded-md shadow-md border border-amber-300/80 overflow-hidden flex flex-col bg-amber-100">
+                            <!-- الجزء العلوي الجاف -->
+                            <div class="h-1/2 w-full bg-amber-100"></div>
+                            <!-- الطرف السفلي الذي يتغير لونه عند الغمس -->
+                            <div id="paperDippedTip" class="paper-tip-transition h-1/2 w-full bg-amber-100 border-t border-dashed border-amber-300/60"></div>
+                        </div>
+                    </div>
+
+                    <!-- الكأس الزجاجي المدرج (Beaker) -->
+                    <div class="relative w-48 sm:w-52 h-52 beaker-glass rounded-b-3xl z-10 flex flex-col justify-end overflow-hidden">
+                        <!-- تدريجات الكأس -->
+                        <div class="absolute inset-y-4 right-2 flex flex-col justify-between text-[10px] font-bold text-slate-500/80 z-20 pointer-events-none">
+                            <span>— 200 mL</span>
+                            <span>— 150 mL</span>
+                            <span>— 100 mL</span>
+                            <span>— 50 mL</span>
+                        </div>
+
+                        <!-- السائل داخل الكأس -->
+                        <div id="beakerLiquid" class="liquid-transition w-full relative overflow-hidden" style="height: 55%; background-color: rgba(239, 68, 68, 0.35);">
+                            <!-- سطح السائل العلوي -->
+                            <div class="w-full h-2 bg-white/40 absolute top-0 left-0"></div>
+                            <!-- لوحة الرسم المتحركة للأيونات H+ و OH- -->
+                            <canvas id="ionsCanvas" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- قاعدة طاولة المختبر -->
+                    <div class="w-64 h-3 bg-slate-400/60 rounded-full mt-1 blur-[1px]"></div>
+                </div>
+
+                <!-- مفتاح الأيونات وأداة التخفيف بالماء المقطر -->
+                <div class="w-full mt-3 space-y-3">
+                    <!-- مفتاح دلالة الأيونات -->
+                    <div class="flex items-center justify-center gap-4 bg-slate-50 py-2 px-3 rounded-2xl border border-slate-200 text-xs font-bold">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-extrabold shadow-sm">+</span>
+                            <span>أيون الهيدروجين (<span class="formula-ltr">H<sup>+</sup></span>)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] flex items-center justify-center font-extrabold shadow-sm">-</span>
+                            <span>أيون الهيدروكسيد (<span class="formula-ltr">OH<sup>−</sup></span>)</span>
+                        </div>
+                    </div>
+
+                    <!-- شريط إضافة ماء مقطر للتخفيف -->
+                    <div class="bg-sky-50/80 border border-sky-200 rounded-2xl p-3">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="dilutionSlider" class="text-xs sm:text-sm font-extrabold text-sky-900 flex items-center gap-1.5">
+                                <span>💧</span>
+                                <span>إضافة ماء مقطر للتخفيف:</span>
+                            </label>
+                            <span id="waterAddedLabel" class="text-xs font-extrabold bg-sky-600 text-white px-2.5 py-0.5 rounded-full">0 mL ماء</span>
+                        </div>
+                        <input id="dilutionSlider" type="range" min="0" max="100" value="0" oninput="handleDilution(this.value)" class="w-full h-2 bg-sky-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-[11px] font-bold text-sky-700 mt-1">
+                            <span>مركز (0%)</span>
+                            <span>نصف مخفف</span>
+                            <span>مخفف جداً (يقترب من pH 7)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- العمود الأيسر: مقياس pH والتحليل العلمي -->
+            <section class="lg:col-span-4 bg-white rounded-3xl p-4 sm:p-5 shadow-md border border-slate-200/80 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-base sm:text-lg font-extrabold text-slate-800 flex items-center gap-2">
+           
